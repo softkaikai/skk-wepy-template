@@ -1,0 +1,380 @@
+<template>
+    <mainBox>
+        <view slot="content" class="app display-f-v">
+            <view class="top-nav">
+                <view class="nav-item"
+                      :class="{'nav-item-active': boughtStatus != 1 }"
+                      @tap="changeStatus(0)">
+                    应学课程
+                </view>
+                <view class="nav-item"
+                      :class="{'nav-item-active': boughtStatus == 1 }"
+                      @tap="changeStatus(1)">
+                    在学课程
+                </view>
+            </view>
+            <view class="flex-v-1" id="scroll-box">
+                <view :class="{'hide': courseList && courseList.length&&!!userInfo}">
+                    <view class="empty-p1 m-t-200" :class="{'hide': boughtStatus == 1}">暂无应学课程</view>
+                    <view class="empty-p2 m-t-20" :class="{'hide': boughtStatus == 1}">请前往“企业后台”添加课程</view>
+                    <view class="empty-p1 m-t-200" :class="{'hide': boughtStatus != 1}">暂无在学课程</view>
+                    <view class="empty-p2 m-t-20" :class="{'hide': boughtStatus != 1}">请前往“应学课程”添加课程</view>
+                    <view class="m-t-50 btn-middle m-r-120 m-l-120" wx:if="{{!isLogin&&hasCallLogin&&!!userInfo}}" @tap="jumpPage('/pages/my/index', 'switch')">前往绑定</view>
+                    <button class="m-t-50 btn-middle m-r-120 m-l-120 userInfo-btn"
+                            wx:if="{{!userInfo}}"
+                            open-type="getUserInfo" lang="zh_CN" @getuserinfo="onGotUserInfo">获取用户信息</button>
+                </view>
+                <!--<button open-type="openSetting"
+                >打开授权设置页</button>-->
+                <scroll-view scroll-y
+                             class="lesson__scroll"
+                             style="height: {{scrollHeight}}"
+                             :class="{'hide': !(courseList && courseList.length&&!!userInfo)}"
+                             @scrolltolower="scrolltolower"
+                >
+                    <repeat for="{{courseList}}" key="index" index="index" item="item">
+                        <view class="lesson__list" @tap="toLessonDetail({{index}})">
+                            <view class="lesson__l m-r-20">
+                                <image class="img" src="{{item.course.coursewares[0].coursewareImageUrl}}" mode="aspectFill"></image>
+                            </view>
+                            <view class="lesson__r">
+                                <view class="f-s-28"
+                                      :class="{'hide': boughtStatus == 1}"
+                                >
+                                    {{item.course.courseName}}
+                                    <text class="f-r c-green f-s-24" :class="{'hide':item.course.coursePrice !== 0}">免费</text>
+                                    <text class="f-r lesson__price" :class="{'hide':item.course.coursePrice === 0}">￥{{item.course.coursePrice}}</text>
+                                </view>
+                                <view class="f-s-28"
+                                      :class="{'hide': boughtStatus != 1}"
+                                >
+                                    {{item.course.courseName}}
+                                    <text class="f-r c-green f-s-24" :class="{'hide':item.examStatus === 0}">已合格</text>
+                                    <view class="f-r c-blue f-s-24" :class="{'hide':item.examStatus !== 0}">
+                                        {{item.studyPercent}}%
+                                    </view>
+                                    <view class="f-r  f-s-24 m-r-10" :class="{'hide':item.examStatus !== 0}">
+                                        已学习
+                                    </view>
+                                </view>
+                                <view class="f-s-20 c-6 m-t-20">
+                                    <view class="icon-fire"></view> {{item.course.boughtNumber}}人学过
+                                </view>
+                                <view class="f-s-20 c-6 m-t-45">
+                                    有效期：{{item.course.effectiveTimeFilter}}至{{item.course.expireTimeFilter}}
+                                </view>
+                            </view>
+                        </view>
+                    </repeat>
+
+                </scroll-view>
+            </view>
+        </view>
+    </mainBox>
+</template>
+<script>
+    import wepy from 'wepy';
+    import MainBox from '@components/mainBox';
+    import TopBar from '@components/topBar';
+    import Page from '@lib/page';
+    import storeTool from '@store/tool';
+    import api from '@utils/api';
+    import tool from '@utils/tool';
+    import commonMixin from '@mixins/common'
+
+    export default class index extends wepy.page {
+        config = {
+            enablePullDownRefresh: true,
+            navigationBarTitleText: '在线学习'
+        }
+        components = {
+            mainBox: MainBox,
+            topBar: TopBar
+        }
+        mixins = [commonMixin]
+        data = {
+            studentInfo: {},
+            searchOff: {
+                studentId: '',
+                pageSize: 7,
+                state: 1,
+                // isCorrelationExam: 1,
+                boughtStatus: 0 // 0 未购买 1购买
+            },
+            searchOn: {
+                studentId: '',
+                pageSize: 7,
+                state: 1,
+                // isCorrelationExam: 1,
+                boughtStatus: 1 // 0 未购买 1购买
+            },
+            boughtStatus: 0,
+            scrollHeight: '100px',
+            isLogin: false,
+            hasCallLogin: false,
+            clearDataOn: false,
+            clearDataOff: false,
+            courseList: [],
+            offList: [],
+            onList: [],
+            pageOff: null,
+            pageOn: null,
+            num: 10,
+            userInfo: '',
+        }
+        methods = {
+            scrolltolower () {
+                this.getData();
+            },
+            changeStatus (status) {
+                this.boughtStatus = status;
+                if (this.boughtStatus == 1 && this.onList.length === 0) {
+                    this.getData();
+                } else if (this.boughtStatus == 1 && this.onList.length) {
+                    this.courseList = [...this.onList];
+                    this.filterData();
+                    this.$apply();
+                }
+                if (this.boughtStatus != 1 && this.offList.length === 0) {
+                    this.getData();
+                } else if (this.boughtStatus != 1 && this.offList.length) {
+                    this.courseList = [...this.offList];
+                    this.filterData();
+                    this.$apply();
+                }
+            },
+            toLessonDetail (index) {
+                wx.setStorageSync('lessonDetail', this.courseList[index]);
+                this.jumpPage('/pages/learningLesson/lessonDetail');
+            },
+            onGotUserInfo (e) {
+                if (e.detail.errMsg === 'getUserInfo:ok') {
+                    this.userInfo = e.detail.userInfo;
+                    wx.setStorageSync('userInfo', e.detail.userInfo);
+                    if (!this.isLogin) {
+                        this.jumpPage('/pages/my/index', 'switch');
+                    }
+                    this.$apply();
+                }
+
+            }
+        }
+
+        filterData () {
+            this.courseList.forEach(item => {
+                if (!item.hasTrans) {
+                    item.course.effectiveTimeFilter = item.course.effectiveTime.split(' ')[0];
+                    item.course.expireTimeFilter = item.course.expireTime.split(' ')[0];
+                    item.studyPercent = Math.ceil(item.studyPercent*100);
+                    item.hasTrans = true;
+                }
+            })
+        }
+
+        getData() {
+            let pageClass = this.pageOff;
+            if (this.boughtStatus == 1) {
+                pageClass = this.pageOn;
+            }
+            if (pageClass) {
+                if(!pageClass.canPull) {
+                    this.updateList();
+                    return;
+                } else {
+
+                }
+                pageClass.canPull = false;
+                pageClass.onPullingUp().then(res => {
+                    if (this.boughtStatus == 1) {
+                        if (this.clearDataOn) {
+                            this.onList = [...res];
+                            this.clearDataOn = false;
+                        } else {
+                            this.onList = [...this.onList, ...res];
+                        }
+
+                    } else {
+                        if (this.clearDataOff) {
+                            this.offList = [...res];
+                            this.clearDataOff = false;
+                        } else {
+                            this.offList = [...this.offList, ...res];
+                        }
+                    }
+
+                    if (this.boughtStatus == 1) {
+                        this.courseList = [...this.onList];
+                    } else {
+                        this.courseList = [...this.offList];
+                    }
+
+                    this.filterData();
+                    this.$apply();
+                }).catch(err => {
+                    this.updateList();
+                    // storeTool.showTip(err);
+                })
+            } else {
+                this.updateList();
+            }
+
+        }
+
+        updateList () {
+            if (this.boughtStatus == 1) {
+                this.courseList = [...this.onList];
+            } else {
+                this.courseList = [...this.offList];
+            }
+            this.$apply();
+        }
+
+
+        login () {
+            let that = this;
+            wx.login({
+                success(data) {
+                    api.loginByOpenId({code: data.code}).then(res => {
+                        that.hasCallLogin = true;
+                        if (res.resultCode === '0') {
+                            let resData = res.resultData;
+                            that.isLogin = true;
+                            wx.setStorageSync('studentInfo', resData);
+                            wx.setStorageSync('token', resData.token);
+                            wx.setStorageSync('storeId', resData.student.storeId);
+                            that.init();
+                            that.$apply();
+                        } else {
+                            that.isLogin = false;
+                        }
+
+                    })
+                }
+            })
+        }
+
+        scrollInit () {
+            let that = this;
+            wx.createSelectorQuery().select('#scroll-box').boundingClientRect(function(rect){
+                that.scrollHeight = rect.height + 'px';
+                that.$apply();
+            }).exec()
+        }
+
+        init () {
+            // this.boughtStatus = 0;
+            this.studentInfo = wx.getStorageSync('studentInfo') || {};
+            this.userInfo = wx.getStorageSync('userInfo');
+            if (this.studentInfo.student && this.studentInfo.student.id) {
+                this.isLogin = true;
+                this.searchOff.studentId = this.studentInfo.student.id;
+                this.searchOn.studentId = this.studentInfo.student.id;
+                this.searchOff.pageNo = 0;
+                this.searchOn.pageNo = 0;
+                // this.courseList = [];
+                this.clearDataOn = true;
+                this.clearDataOff = true;
+                this.pageOff = new Page({search: this.searchOff, pageApi: 'getCourse'});
+                this.pageOn = new Page({search: this.searchOn, pageApi: 'getCourse'});
+                this.getData();
+            } else {
+                this.login();
+            }
+        }
+
+        onPullDownRefresh () {
+            wx.setStorageSync('onPullDownRefresh', '123');
+            this.init();
+            wx.stopPullDownRefresh();
+        }
+
+        onLoad () {
+            console.log('load');
+        }
+        onShow () {
+            console.log('show');
+
+            this.init();
+        }
+        onReady () {
+            setTimeout(() => {
+                this.scrollInit();
+            }, 200)
+        }
+    }
+</script>
+<style lang="less" scoped>
+    .top-nav {
+        display: flex;
+
+        height: 100px;
+
+        font-size: 28px;
+    }
+    .nav-item {
+        flex: 1;
+        width: 0;
+        position: relative;
+
+        text-align: center;
+        line-height: 100px;
+    }
+    .nav-item-active {
+        &::after {
+            display: block;
+
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translate(-50%, 0);
+
+            content: ' ';
+            width: 120px;
+            height: 4px;
+            background: #07d;
+        }
+    }
+    .lesson__list {
+        display: flex;
+
+        height: 180px;
+        padding: 20px;
+    }
+    .lesson__l {
+        width: 140px;
+        height: 140px;
+
+        border: 1px solid #e0e0e0;
+    }
+    .lesson__r {
+        width: 0;
+        flex: 1;
+    }
+    .lesson__price {
+        font-size: 28px;
+        color: #f60;
+
+        &:first-letter {
+            font-size: 24px;
+        }
+    }
+    .lesson__scroll {
+        width: 100%;
+        height: 100%;
+    }
+
+    .empty-p1 {
+        color: #666;
+        font-size: 28px;
+        text-align: center;
+    }
+    .empty-p2 {
+        color: #666;
+        font-size: 24px;
+        text-align: center;
+    }
+    .userInfo-btn {
+        border-radius: 0;
+        font-size: 30px;
+    }
+</style>

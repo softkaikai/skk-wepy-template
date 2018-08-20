@@ -1,0 +1,70 @@
+@import (reference) '../variables.less';
+@import (reference) '../mixin.less';
+.input-view {
+    position: relative;
+
+    display: flex;
+
+    width: 100%;
+    height: 100px;
+    padding: 0 20px;
+    border-bottom: 1px solid #E5E5E5;
+    line-height: 100px;
+
+    font-size: 28px;
+
+    background: #fff;
+
+    .icon-r_arrow {
+        position: absolute;
+        right: 20px;
+        top: 40px;
+    }
+}
+.input-view__label {
+
+    width: 150px;
+
+    color: #999;
+}
+.input-view__area {
+
+    width: 0;
+    flex: 1;
+
+    height: 100%;
+
+    color: #121212;
+
+    input {
+        width: 100%;
+        height: 100%;
+    }
+}
+.input-view__r {
+    width: 170px;
+    color: @f-c-07d;
+
+}
+.input-view__placeholder_className {
+    font-size: 28px;
+    color: #ccc;
+}
+
+
+.btn {
+    text-align: center;
+    color: #fff;
+    background: #07d;
+}
+.btn-big {
+    .btn();
+    line-height: 96px;
+}
+.btn-middle {
+    .btn();
+    line-height: 80px;
+}
+.btn-disable {
+    background: #ccc;
+}

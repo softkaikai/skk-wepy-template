@@ -1,0 +1,86 @@
+<style lang="less">
+    .replace-area{color: red;}
+</style>
+
+<script>
+    import wepy from 'wepy'
+    import 'wepy-async-function'
+
+    import { formatConfig } from '@utils/apiConfig'
+    import { setStore } from 'wepy-redux'
+    import configStore from './store'
+
+    const store = configStore()
+    setStore(store)
+
+    export default class extends wepy.app {
+        config = {
+            pages: [
+                'pages/index',
+                'pages/exam/identityConfirm',
+                'pages/exam/identityImg',
+                'pages/exam/examStart',
+                'pages/exam/nameSign',
+                'pages/learningLesson/index',
+                'pages/learningLesson/lessonDetail',
+                'pages/learningLesson/checkResult',
+                'pages/my/index',
+                'pages/my/certificate',
+                'pages/my/studentInfo',
+                'pages/my/testRecord',
+                'pages/my/serviceAggrement',
+            ],
+            window: {
+                backgroundTextStyle: 'dark',
+                navigationBarBackgroundColor: '#fff',
+                navigationBarTitleText: 'WeChat',
+                navigationBarTextStyle: 'black'
+            },
+            tabBar: {
+                backgroundColor: '#fff',
+                selectedColor: '#07d',
+                color: '#999',
+                "list": [{
+                    "pagePath": "pages/index",
+                    "iconPath": 'images/shouye_no.png',
+                    "selectedIconPath": 'images/shouye_yes.png',
+                    "text": "首页"
+                }, {
+                    "pagePath": "pages/my/index",
+                    "iconPath": 'images/wode_no.png',
+                    "selectedIconPath": 'images/wode_yes.png',
+                    "text": "我的"
+                }]
+            },
+        };
+
+        constructor () {
+            super()
+            this.use('requestfix') // 修复小程序请求并发问题
+            this.use('promisify') // 使用wepy.xxx的方式请求小程序原生API都将Promise化
+
+            this.intercept('request', {
+                config (p) {
+                    return formatConfig(p);
+                },
+                success (obj) {
+                    return obj.data;
+                }
+            })
+        }
+
+        onLaunch() {
+            wx.clearStorage();
+            wx.getUserInfo({
+                success: function(res) {
+                    console.log(res.userInfo);
+                    wx.setStorageSync('userInfo',res.userInfo);
+                },
+                fail (err) {
+                    console.log(err);
+                }
+            })
+        }
+
+    }
+</script>

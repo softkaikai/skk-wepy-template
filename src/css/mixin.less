@@ -1,0 +1,82 @@
+@import (reference) "./variables";
+/**
+ * .spaceMixin(5);
+ */
+.spaceMixin(@i) when (@i >= 0) {
+  .m-r-@{i} {
+    margin-right: @i + 0px;
+  }
+  .m-l-@{i} {
+    margin-left: @i + 0px;
+  }
+  .m-t-@{i} {
+    margin-top: @i + 0px;
+  }
+  .m-b-@{i} {
+    margin-bottom: @i + 0px;
+  }
+
+  .p-r-@{i} {
+    padding-right: @i + 0px;
+  }
+  .p-l-@{i} {
+    padding-left: @i + 0px;
+  }
+  .p-t-@{i} {
+    padding-top: @i + 0px;
+  }
+  .p-b-@{i} {
+    padding-bottom: @i + 0px;
+  }
+  .spaceMixin(@i - 5)
+}
+
+/***********border mixin*******************/
+.bd(l; @val: 1px; @type: solid; @color: @bd-c) {
+  border-left: @arguments;
+}
+.bd(r; @val: 1px; @type: solid; @color: @bd-c) {
+  border-right: @arguments;
+}
+.bd(t; @val: 1px; @type: solid; @color: @bd-c) {
+  border-top: @arguments;
+}
+.bd(b; @val: 1px; @type: solid; @color: @bd-c) {
+  border-bottom: @arguments;
+}
+.bd(@val: 1px; @type: solid; @color: @bd-c) {
+  border: @arguments;
+}
+
+.bd-class(@num) when (@num >= 0) {
+  .bd-r-@{num} {
+    .bd(r;@num+0PX); /*no*/
+  }
+  .bd-l-@{num} {
+    .bd(l;@num+0PX); /*no*/
+  }
+  .bd-t-@{num} {
+    .bd(t;@num+0PX); /*no*/
+  }
+  .bd-b-@{num} {
+    .bd(b;@num+0PX); /*no*/
+  }
+  .bd-@{num} {
+    .bd(@num+0PX); /*no*/
+  }
+}
+
+.b-radius(@r: 4px) {
+  border-radius: @r;
+}
+
+.fontSizeMixin(@num) when (@num >= 20) {
+    .f-s-@{num} {
+        font-size: @num + 0px;
+    }
+    .fontSizeMixin(@num - 2);
+}
+
+
+
+

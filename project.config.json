@@ -1,0 +1,74 @@
+{
+	"description": "online education miniapps",
+	"setting": {
+		"urlCheck": false,
+		"es6": false,
+		"postcss": false,
+		"minified": false,
+		"newFeature": true
+	},
+	"compileType": "miniprogram",
+	"appid": "wx4c15b2cb1c30d23e",
+	"projectname": "learnOnline",
+	"miniprogramRoot": "./dist",
+	"libVersion": "2.1.1",
+	"condition": {
+		"search": {
+			"current": -1,
+			"list": []
+		},
+		"conversation": {
+			"current": -1,
+			"list": []
+		},
+		"plugin": {
+			"current": -1,
+			"list": []
+		},
+		"game": {
+			"current": -1,
+			"list": []
+		},
+		"miniprogram": {
+			"current": -1,
+			"list": [
+				{
+					"id": 0,
+					"name": "my",
+					"pathName": "pages/my/index",
+					"query": ""
+				},
+				{
+					"id": -1,
+					"name": "certificate",
+					"pathName": "pages/my/certificate",
+					"query": ""
+				},
+				{
+					"id": -1,
+					"name": "studentInfo",
+					"pathName": "pages/my/studentInfo",
+					"query": ""
+				},
+				{
+					"id": -1,
+					"name": "testRecord",
+					"pathName": "pages/my/testRecord",
+					"query": ""
+				},
+				{
+					"id": -1,
+					"name": "index",
+					"pathName": "pages/index",
+					"query": ""
+				},
+				{
+					"id": -1,
+					"name": "checkResult",
+					"pathName": "pages/learningLesson/checkResult",
+					"query": ""
+				}
+			]
+		}
+	}
+}

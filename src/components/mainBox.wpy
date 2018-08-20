@@ -1,0 +1,47 @@
+<template>
+    <view class="main">
+        <view class="app-container">
+            <slot name="content"></slot>
+            <slot></slot>
+        </view>
+        <view class="app-footer">
+            <slot name="footer"></slot>
+        </view>
+        <tip></tip>
+    </view>
+</template>
+
+<script>
+    import wepy from 'wepy'
+    import TipBox from '@components/tipBox'
+    import { getStore } from 'wepy-redux'
+    const store = getStore();
+
+    export default class MainBox extends wepy.component {
+        components = {
+            tip: TipBox
+        }
+        methods = {
+            callName(e) {
+                console.log(123);
+            }
+        }
+        showTip (tipObj) {
+            let msg = tipObj;
+            msg.content = msg.content || '没有传递信息';
+            msg.dir = msg.dir || 'center';
+            msg.duration = msg.duration || 2000;
+            this.$invoke('tip', 'show', msg.content, {
+                position: msg.dir,
+                duration: msg.duration
+            });
+        }
+        onLoad () {
+            store.subscribe(() => {
+                let { showTip } = store.getState()
+                this.showTip(showTip);
+            })
+        }
+    }
+</script>
+<style lang="less"></style>
