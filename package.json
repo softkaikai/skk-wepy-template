@@ -1,7 +1,7 @@
 {
-  "name": "online-education-miniapps-frontend",
-  "version": "0.0.2",
-  "description": "online education miniapps",
+  "name": "{{projectName}}",
+  "version": "{{version}}",
+  "description": "{{description}}",
   "main": "dist/app.js",
   "scripts": {
     "dev": "wepy build --watch",
@@ -14,7 +14,7 @@
     "module-a": false,
     "./src/components/list": "./src/components/wepy-list.wpy"
   },
-  "author": "guojiashu <327326724@qq.com>",
+  "author": "{{author}}",
   "license": "MIT",
   "dependencies": {
     "redux": "^3.7.2",
